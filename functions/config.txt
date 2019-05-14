@@ -1,1 +1,4 @@
-firebase functions:config:set twitter.consumer_key="HXmlUWQTdP6mIGUjcQIJZnc5h" twitter.consumer_secret="yEkJVRH7BQW8ktrNcYfJqTmrRNmj7yG2FMtAatjtJ6AsIZ07CD" twitter.access_token="WuE4AfaUH6FZ4DP23dAFe6Aw4ta8mXD63oIyAXkB" twitter.access_token_secret="dTdKFRrZScqgERhzLQnQEqrgkWNDag5T5yQF3ncAukS0h"
+# to test in the emulator, run
+firebase functions:config:get > .runtimeconfig.json
+
+firebase functions:config:set twitter.consumer_key="HXmlUWQTdP6mIGUjcQIJZnc5h" twitter.consumer_secret="yEkJVRH7BQW8ktrNcYfJqTmrRNmj7yG2FMtAatjtJ6AsIZ07CD" twitter.access_token_key="232707493-WuE4AfaUH6FZ4DP23dAFe6Aw4ta8mXD63oIyAXkB" twitter.access_token_secret="dTdKFRrZScqgERhzLQnQEqrgkWNDag5T5yQF3ncAukS0h"

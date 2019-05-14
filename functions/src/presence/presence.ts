@@ -16,25 +16,29 @@ export const onFanStatusChanged = functions.database.ref("/status/fans/{userId}"
 
 function _handleUserStatusChanged(change: functions.Change<functions.database.DataSnapshot>, ctx: functions.EventContext, isArtist: boolean): boolean {
     console.log("Update recieved");
+
     if (ctx.auth === undefined || change.after === undefined || !change.after.exists()) {
         return false;
     }
-    const uid = ctx.auth.uid;
+
+    const uid = ctx.params["userId"];
+    // const uid = ctx.auth.uid;
     const status = change.after.val();
 
     console.log("Handling update");
 
     const firestore = new Firestore();
-
-    const ref: CollectionReference = firestore.collection("fans");
+    const ref: CollectionReference = firestore.collection(isArtist ? "artists" : "fans");
     if (status === 'offline') {
         ref.where("uid", "==", uid).limit(1).get()
             .then((querySnapshot) => {
                 const docSnapshot: QueryDocumentSnapshot = querySnapshot.docs[0];
                 if (docSnapshot === null) {
                     // return null;
-                    throw Error("Fan not found");
+                    throw Error(`${isArtist ? "Artist" : "Fan"} not found`);
                 }
+                console.log(`User ${uid} found.`);
+
                 const docId = docSnapshot.id;
                 return ref.doc(docId).set({ online: false, lastSeen: moment().utc().valueOf() }, { merge: true }).then((wr: WriteResult) => {
                     return {
@@ -43,7 +47,7 @@ function _handleUserStatusChanged(change: functions.Change<functions.database.Da
                 });
             })
             .then((res: Pair<String, WriteResult>) => {
-                console.log(`Updated firestore presence doc ${res.first} at ${res.second.writeTime}`);
+                console.log(`Updated firestore presence doc ${res.first}`);
                 return true;
             })
             .catch((err: any) => {

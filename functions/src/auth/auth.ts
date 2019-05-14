@@ -117,11 +117,21 @@ export const verifyArtist = functions.https.onCall(async (data, context) => {
         console.log(`Successfully updated user ${uid} at ${result.writeTime.toMillis()}.`);
 
         // delete pending verification
-        const pvCollecction: CollectionReference = firestore.collection("pending_verifications");
-        querySnapshot = await pvCollecction.where("uid", "==", uid).get();
+        const pvCollection: CollectionReference = firestore.collection("pending_verifications");
+        querySnapshot = await pvCollection.where("uid", "==", uid).get();
         querySnapshot.forEach(async (snap) => {
             await snap.ref.delete();
         });
+
+        // schedule social feed tasks for artist
+        const newJob = {
+            worker: "loadTwitterFeed",
+            status: "scheduled",
+            performAt: moment().utc().add("5 minutes").valueOf(),
+            param: artist["twitterId"],
+        };
+        await admin.firestore().collection("tasks").add(newJob);
+
         return { success: true };
     } catch (error) {
         console.log(`Failed to verify user. ${error}`);

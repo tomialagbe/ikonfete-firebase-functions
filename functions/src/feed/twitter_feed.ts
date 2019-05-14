@@ -1,49 +1,65 @@
 // import * as functions from 'firebase-functions';
 // import * as admin from 'firebase-admin';
-// import { DocumentReference, CollectionReference, QueryDocumentSnapshot } from '@google-cloud/firestore';
-// import * as twt from 'twitter';
+// import { DocumentSnapshot, CollectionReference, QueryDocumentSnapshot } from '@google-cloud/firestore';
+// import Twitter = require('twitter');
+// import { EventContext } from 'firebase-functions';
 
-// /// Activates a firebase auth user
-// export const fetchArtistTwitterFeed = functions.https.onCall(async (data, context) => {
-//     const uid = data.artistUid;
 
-//     // const auth = admin.auth();
-//     // const updateRequest: admin.auth.UpdateRequest = {
-//     //     emailVerified: true
-//     // };
-
-//     // try {
-//     //     const userRecord: admin.auth.UserRecord = await auth.updateUser(uid, updateRequest);
-//     //     return { success: true, uid: userRecord.uid };
-//     // } catch (error) {
-//     //     const errMessage = `Failed to update firebase user: ${error}`;
-//     //     console.log();
-//     //     return { success: false, error: errMessage };
-//     // }
-
-//     // get the artist object and then get his twitter uid
-//     try {
-//         const firestore = admin.firestore();
-//         const artistCollection: CollectionReference = firestore.collection("artists");
-//         let querySnapshot = await artistCollection.where("uid", "==", uid).limit(1).get()
-//         if (querySnapshot.docs.length === 0) {
-//             return { success: false, error: "Artist not found" };
-//         }
-//         const doc: QueryDocumentSnapshot = querySnapshot.docs[0];
-//         const artist = doc.data();
-//         const twitterId = artist["twitterId"];
-//         if (twitterId == null || twitterId == undefined) {
-//             return { success: true, result: [] };
-//         }
-
-//         // const config = functions.config();
-
-//         // twt.prototype.get("search/tweets", {q: `from:${twitterId}`}, (error: any, data: twt.ResponseData, response) => {
-
-//         // });
-//         return null;
-
-//     } catch (error) {
-//         return null;
-//     }
+// const twitterClient = new Twitter({
+//     consumer_key: functions.config().twitter.consumer_key,
+//     consumer_secret: functions.config().twitter.consumer_secret,
+//     access_token_key: functions.config().twitter.access_token_key,
+//     access_token_secret: functions.config().twitter.access_token_secret,
 // });
+
+// export const streamArtistTwitterFeed = functions.firestore.document("/artists/{$id}").onUpdate((change: functions.Change<DocumentSnapshot>, eventCtx: EventContext) => {
+//     change.before()
+// });
+
+
+/*
+export const fetchArtistTwitterFeed = functions.https.onCall(async (data, ctx) => {
+    const artistUid = data.artistUid;
+    const count = data.count;
+    const lastTweetId = data.lastTweetId || null;
+    const firestore = admin.firestore();
+    const artistCollection: CollectionReference = firestore.collection("artists");
+    const querySnapshot = await artistCollection.where("uid", "==", artistUid).limit(1).get();
+    if (querySnapshot.docs.length == 0) {
+        return { success: false, error: "Artist not found." };
+    }
+
+    const doc: QueryDocumentSnapshot = querySnapshot.docs[0];
+    const artist = doc.data();
+    const twitterId = artist["twitterId"];
+    if (twitterId == null || twitterId == undefined) {
+        return { success: true, result: [] };   // return an empty tweet array if the artist has not yet set up his twitter account
+    }
+
+    let params: Twitter.RequestParams;
+    if (lastTweetId == null) {
+        console.log("Last tweet id is null");
+        params = {
+            "user_id": twitterId,
+            "count": count,
+            "exclude_replies": true,
+        };
+    } else {
+        console.log("Last tweet id is NOT null");
+        params = {
+            "user_id": twitterId,
+            "count": count,
+            "exclude_replies": true,
+            "max_id": lastTweetId,
+        };
+    }
+
+    try {
+        const twitterResponse = await twitterClient.get("statuses/user_timeline", params);
+        return { success: true, result: twitterResponse };
+    } catch (error) {
+        return { success: false, error: `Failed to load twitter feed. ${JSON.stringify(error)}` };
+    }
+
+});
+*/
