@@ -1,12 +1,11 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-// import { DocumentSnapshot, CollectionReference, QueryDocumentSnapshot } from '@google-cloud/firestore';
 import Twitter = require('twitter');
 import moment = require('moment');
-// import { EventContext } from 'firebase-functions';
 
 
 export async function loadTwitterFeed(taskId: string, twitterId: string): Promise<boolean> {
+    console.log(`Running loadTwitterFeed task # ${taskId}`);
     await admin.firestore().collection("tasks").doc(taskId).update({ status: "running" });
 
     // get the tweet id of the most recent post
