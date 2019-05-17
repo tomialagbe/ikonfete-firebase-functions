@@ -43,7 +43,15 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
     const tweets: Twitter.ResponseData = await twitterClient.get("statuses/user_timeline", params)
     const tweetList: any[] = JSON.parse(JSON.stringify(tweets));
 
+
+
     tweetList.forEach(async (tweet: any) => {
+        const is_retweet = tweet["text"].startsWith("RT")
+        const retweet_status = tweet["retweeted_status"];
+        let retweeted_by = null;
+        if (retweet_status) {
+            retweeted_by = retweet_status.user;
+        }
         const item = {
             type: "twitter",
             feedId: tweet["id"],
@@ -51,8 +59,10 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
             created_at: moment(tweet["created_at"], "ddd MMM DD HH:mm:ss Z YYYY").utc().valueOf(),    //Mon Dec 17 16:45:36 +0000 2018
             text: tweet["text"],
             entities: tweet["entities"],
+            user_id: twitterId,
             user: tweet["user"],
-            is_retweet: tweet["retweeted_status"] == true,
+            is_retweet: is_retweet,
+            retweeted_from: retweeted_by,
             is_quote_status: tweet["is_quote_status"],
             retweet_count: tweet["retweet_count"],
             favorite_count: tweet["favorite_count"],
