@@ -40,7 +40,7 @@ function _handleUserStatusChanged(change: functions.Change<functions.database.Da
                 console.log(`User ${uid} found.`);
 
                 const docId = docSnapshot.id;
-                return ref.doc(docId).set({ online: false, lastSeen: moment().utc().valueOf() }, { merge: true }).then((wr: WriteResult) => {
+                return ref.doc(docId).set({ online: false, lastSeen: moment().valueOf() }, { merge: true }).then((wr: WriteResult) => {
                     return {
                         docId: docId, writeResult: wr
                     } as unknown as Pair<String, WriteResult>;

@@ -3,7 +3,6 @@ import * as admin from 'firebase-admin';
 import Twitter = require('twitter');
 import moment = require('moment');
 
-
 export async function loadTwitterFeed(taskId: string, twitterId: string): Promise<boolean> {
     console.log(`Running loadTwitterFeed task # ${taskId}`);
     await admin.firestore().collection("tasks").doc(taskId).update({ status: "running" });
@@ -23,27 +22,18 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
         access_token_secret: functions.config().twitter.access_token_secret,
     });
 
-    let params: Twitter.RequestParams;
+    let params: Twitter.RequestParams = {};
+    params["user_id"] = twitterId;
+    params["count"] = 100;
+    params["exclude_replies"] = true;
+    params["include_rts"] = false;
     if (lastTweetId) {
-        params = {
-            "user_id": twitterId,
-            "count": 100,
-            "exclude_replies": true,
-            "since_id": lastTweetId
-        };
-    } else {
-        params = {
-            "user_id": twitterId,
-            "count": 100,
-            "exclude_replies": true,
-        };
+        params["since_id"] = lastTweetId;
     }
 
 
     const tweets: Twitter.ResponseData = await twitterClient.get("statuses/user_timeline", params)
     const tweetList: any[] = JSON.parse(JSON.stringify(tweets));
-
-
 
     tweetList.forEach(async (tweet: any) => {
         const is_retweet = tweet["text"].startsWith("RT")
@@ -52,13 +42,15 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
         if (retweet_status) {
             retweeted_by = retweet_status.user;
         }
+
         const item = {
             type: "twitter",
             feedId: tweet["id"],
             created_at_str: tweet["created_at"],
-            created_at: moment(tweet["created_at"], "ddd MMM DD HH:mm:ss Z YYYY").utc().valueOf(),    //Mon Dec 17 16:45:36 +0000 2018
+            created_at: moment(tweet["created_at"], "ddd MMM DD HH:mm:ss Z YYYY").valueOf(),    //Mon Dec 17 16:45:36 +0000 2018
             text: tweet["text"],
             entities: tweet["entities"],
+            extended_entities: tweet["extended_entities"] || null,
             user_id: twitterId,
             user: tweet["user"],
             is_retweet: is_retweet,
