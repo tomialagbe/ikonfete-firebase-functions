@@ -22,7 +22,7 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
         access_token_secret: functions.config().twitter.access_token_secret,
     });
 
-    let params: Twitter.RequestParams = {};
+    const params: Twitter.RequestParams = {};
     params["user_id"] = twitterId;
     params["count"] = 100;
     params["exclude_replies"] = true;

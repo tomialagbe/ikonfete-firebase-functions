@@ -31,7 +31,7 @@ function _handleUserStatusChanged(change: functions.Change<functions.database.Da
     const ref: CollectionReference = firestore.collection(isArtist ? "artists" : "fans");
     if (status === 'offline') {
         ref.where("uid", "==", uid).limit(1).get()
-            .then((querySnapshot) => {
+            .then(async (querySnapshot) => {
                 const docSnapshot: QueryDocumentSnapshot = querySnapshot.docs[0];
                 if (docSnapshot === null) {
                     // return null;
@@ -40,13 +40,13 @@ function _handleUserStatusChanged(change: functions.Change<functions.database.Da
                 console.log(`User ${uid} found.`);
 
                 const docId = docSnapshot.id;
-                return ref.doc(docId).set({ online: false, lastSeen: moment().valueOf() }, { merge: true }).then((wr: WriteResult) => {
-                    return {
-                        docId: docId, writeResult: wr
-                    } as unknown as Pair<String, WriteResult>;
-                });
-            })
-            .then((res: Pair<String, WriteResult>) => {
+                console.log("DOCID: " + docId);
+                const wr = await ref.doc(docId).set({ online: false, lastSeen: moment().valueOf() }, { merge: true });
+                return {
+                    docId: docId, writeResult: wr
+                } as unknown as Pair<String, WriteResult>;
+            })        
+            .then((res: Pair<String, WriteResult>) => {            
                 console.log(`Updated firestore presence doc ${res.first}`);
                 return true;
             })
