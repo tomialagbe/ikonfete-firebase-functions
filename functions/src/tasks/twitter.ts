@@ -27,13 +27,13 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
     params["count"] = 100;
     params["exclude_replies"] = true;
     params["include_rts"] = false;
-    if (lastTweetId) {
+    if (lastTweetId) {        
         params["since_id"] = lastTweetId;
     }
 
-
     const tweets: Twitter.ResponseData = await twitterClient.get("statuses/user_timeline", params)
     const tweetList: any[] = JSON.parse(JSON.stringify(tweets));
+    console.log(tweets);
 
     tweetList.forEach(async (tweet: any) => {
         const is_retweet = tweet["text"].startsWith("RT")
@@ -45,7 +45,7 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
 
         const item = {
             type: "twitter",
-            feedId: tweet["id"],
+            feedId: tweet["id_str"],
             created_at_str: tweet["created_at"],
             created_at: moment(tweet["created_at"], "ddd MMM DD HH:mm:ss Z YYYY").valueOf(),    //Mon Dec 17 16:45:36 +0000 2018
             text: tweet["text"],
