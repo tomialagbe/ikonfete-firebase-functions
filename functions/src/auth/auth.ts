@@ -53,15 +53,19 @@ export const createActivation = functions.https.onCall(async (data, context) => 
 
 export const resendActivationCode = functions.https.onCall(async (req, context) => {
     try {
-        let uid = req.uid;
+        const uid = req.uid;
+        const isArtist = req.isArtist;
         // find the activation for this uid        
         const firestore = admin.firestore();
         let querySnapshot = await firestore.collection("activations").where("uid", "==", uid).limit(1).get();
-        const oldActivation = querySnapshot.docs[0];
-        const docData: FirebaseFirestore.DocumentData = oldActivation.data();
-        await oldActivation.ref.delete();
-        const isArtist = docData["isArtist"];
-        uid = docData["uid"];
+        if (!querySnapshot.empty) {
+            const oldActivation = querySnapshot.docs[0];
+            // const docData: FirebaseFirestore.DocumentData = oldActivation.data();
+            await oldActivation.ref.delete();
+        }
+        
+        // const isArtist = docData["isArtist"];
+        // uid = docData["uid"];
         const collectionName = isArtist ? "artists" : "fans";
         querySnapshot = await firestore.collection(collectionName).where("uid", "==", uid).limit(1).get();
         const user: FirebaseFirestore.DocumentData | null = querySnapshot.docs.length > 0 ? querySnapshot.docs[0].data() : null;

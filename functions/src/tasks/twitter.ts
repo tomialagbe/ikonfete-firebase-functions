@@ -13,6 +13,7 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
     if (snap.docs.length > 0) {
         const data = snap.docs[0].data();
         lastTweetId = data["feedId"];
+        console.log("Last tweet id: " + lastTweetId)    
     }
 
     const twitterClient = new Twitter({
@@ -23,6 +24,7 @@ export async function loadTwitterFeed(taskId: string, twitterId: string): Promis
     });
 
     const params: Twitter.RequestParams = {};
+    console.log("user_id: " + twitterId);
     params["user_id"] = twitterId;
     params["count"] = 100;
     params["exclude_replies"] = true;
