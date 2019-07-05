@@ -15,7 +15,15 @@ export const sendArtistActivationCode = functions.firestore.document("artists/{u
             const email = newUser.email;
             const name = newUser.name;
             const uid = newUser.uid;
-            await _sendActivationCode(uid, name, email, true);
+            const isFromFacebook = (newUser.facebookId !== null || newUser.facebookId.length > 0) && (newUser.username === null || newUser.username.length === 0);
+
+            if (!isFromFacebook) {
+                await _sendActivationCode(uid, name, email, true);
+            } else {
+                // activate the user
+                const auth = admin.auth();
+                await auth.updateUser(uid, { emailVerified: true });
+            }
         }
         return snapshot;
     });
@@ -27,7 +35,14 @@ export const sendFanActivationCode = functions.firestore.document("fans/{userId}
             const email = newUser.email;
             const name = newUser.name;
             const uid = newUser.uid;
-            await _sendActivationCode(uid, name, email, false);
+            const isFromFacebook = (newUser.facebookId !== null || newUser.facebookId.length > 0) && (newUser.username === null || newUser.username.length === 0);
+            if (!isFromFacebook) {
+                await _sendActivationCode(uid, name, email, false);
+            } else {
+                // activate the user
+                const auth = admin.auth();
+                await auth.updateUser(uid, { emailVerified: true });
+            }
         }
         return snapshot;
     });
@@ -45,6 +60,7 @@ export const deleteFirebaseUser = functions.https.onCall(async (data, context) =
     }
 });
 
+// a test function
 export const createActivation = functions.https.onCall(async (data, context) => {
     const uid = data.uid;
     await _sendActivationCode(uid, "Tomi", "tomialagbe@yahoo.com", false);
@@ -63,7 +79,7 @@ export const resendActivationCode = functions.https.onCall(async (req, context) 
             // const docData: FirebaseFirestore.DocumentData = oldActivation.data();
             await oldActivation.ref.delete();
         }
-        
+
         // const isArtist = docData["isArtist"];
         // uid = docData["uid"];
         const collectionName = isArtist ? "artists" : "fans";
