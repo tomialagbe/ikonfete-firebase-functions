@@ -53,3 +53,26 @@ export const decrementFeedItemCommentCount = functions.firestore.document("socia
         }
         return { success: false };
     });
+
+/*
+export const incrementFeedItemLikeCount = functions.firestore.document("social_feed/{feedId}/social_feed_likes/{likeId}")
+.onCreate(async (snapshot, context) => {
+    const data = snapshot.data();
+    const feedId = context.params.feedId;
+    // const commentId = context.params.commentId;
+    if (data) {
+        const firestore = admin.firestore();
+        const docRef = await firestore.collection("social_feed").doc(feedId);
+        const docSnap = await docRef.get();
+        let numLikes = 0;
+        const docData = docSnap.data();
+        if (docData && docData.numLikes) {
+            numLikes = docData.numLikes;
+        }
+        numLikes = numLikes + 1;
+        await docRef.update({ "numLikes": numLikes });
+        return { success: true };
+    }
+    return { success: true };
+});
+*/

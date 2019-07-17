@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 
-interface Fan {
+export interface Fan {
     id: string
     uid: string
     currentTeamId: string

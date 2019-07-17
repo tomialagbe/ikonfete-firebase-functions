@@ -4,7 +4,8 @@ import * as handlebars from 'handlebars';
 import * as moment from 'moment';
 import * as nodemailer from 'nodemailer';
 import * as templates from './templates';
-import { DocumentReference, CollectionReference, QueryDocumentSnapshot } from '@google-cloud/firestore';
+import { DocumentReference, CollectionReference, QueryDocumentSnapshot, FieldValue, Firestore } from '@google-cloud/firestore';
+import * as fanRepo from '../repository/fan';
 
 const activationTemplate = handlebars.compile(templates.activationCodeEmailTemplate);
 
@@ -55,8 +56,58 @@ export const deleteFirebaseUser = functions.https.onCall(async (data, context) =
         await firebaseAuth.deleteUser(uid);
         return { success: true };
     } catch (err) {
-        console.log(`Failed to delete user. ${err}`);
-        return { success: false, error: `Failed to delete user ${uid}. ${err}` };
+        console.log(`Failed to delete firebase user. ${err}`);
+        return { success: false, error: `Failed to delete firebase user ${uid}. ${err}` };
+    }
+});
+
+/// FOR TESTING PURPOSES ONLY
+export const fixTeamMemberCounts = functions.https.onCall(async (data, context) => {
+    const firestore = admin.firestore();
+    const querySnapshot = await firestore.collection("artists").get();
+    querySnapshot.forEach(async (snap) => {
+        console.log("Getting count for " + snap.id);
+        const count = await countFansByTeamId(snap.id, firestore);
+        console.log("Count for id " + snap.id + " is " + count);
+        firestore.collection("artists").doc(snap.id).update({ "teamMemberCount": count });
+    });
+
+    console.log("Batch update commited");
+    return;
+});
+
+/// FOR TESTING PURPOSES ONLY
+async function countFansByTeamId(teamId: string, firestore: Firestore): Promise<number> {
+    const qs = await firestore.collection("fans").where("currentTeamId", "==", teamId).get();
+    return qs.size;
+}
+
+export const deleteFan = functions.https.onCall(async (data, context) => {
+    const uid = data.uid;
+    const firebaseAuth = admin.auth();
+    const firestore = admin.firestore();
+
+    try {
+        const fan: fanRepo.Fan | null = await fanRepo.findFanByUid(uid, firestore);
+        if (fan === null) {
+            throw Error('Fan not found');
+        }
+
+        const artistId = fan.currentTeamId;
+        const fanRef = firestore.collection("fans").doc(fan.id);
+        const artistRef = firestore.collection("artists").doc(artistId);
+
+        const batch = firestore.batch();
+        batch.delete(fanRef);
+        batch.update(artistRef, {
+            "teamMemberCount": FieldValue.increment(-1),
+        });
+        await batch.commit();
+        await firebaseAuth.deleteUser(uid);
+        return { success: true };
+    } catch (err) {
+        console.log(`Failed to delete fan. ${err}`);
+        return { success: false, error: `Failed to delete fan ${uid}. ${err}` };
     }
 });
 
